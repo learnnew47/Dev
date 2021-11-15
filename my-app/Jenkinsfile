@@ -1,1 +1,45 @@
 
+pipeline {
+    agent any
+    tools {
+        maven 'maven'
+    }
+    stages {
+        stage('Build maven') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/learnnew47/Dev.git']]])
+                sh 'mvn -f my-app/pom.xml -Dmaven.test.failure.ignore=true clean package'
+                
+            }
+            
+
+            post {
+                success {
+                    echo "Now Archiving the Artifacts...."
+                    archiveArtifacts artifacts: '**/*.jar'
+                }
+            }
+        }
+        
+        stage('Build Image') {
+            steps {
+                script {
+                    sh 'docker build -t geet479/javaworld-1.0 ./my-app'
+                }
+            }
+        }
+        
+        stage('push image'){
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'Dockerlogin', variable: '')]) {
+                        sh 'docker login -u geet479 -p ${dockerhub_creds}'
+                        sh 'docker push geet479/javaworld-1.0'
+                    }
+                }
+            }
+        }
+    }
+}
+
+
