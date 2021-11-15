@@ -1,12 +1,12 @@
 pipeline {
     agent any
     tools {
-        maven 'localmaven'
+        maven 'maven'
     }
     stages {
         stage('Build maven') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'GIT_Creds', url: 'https://github.com/BhagyashreeBS25/Assignment1.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/learnnew47/Dev.git']]])
                 sh 'mvn -f my-app/pom.xml -Dmaven.test.failure.ignore=true clean package'
                 
             }
@@ -19,33 +19,26 @@ pipeline {
                 }
             }
         }
-       
-        stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQube_Server') { 
-      
-                    sh 'mvn sonar:sonar'
-                }
-            }
-       }
         
-        stage('Build Docker Image') {
+        stage('Build Image') {
             steps {
                 script {
-                    sh 'docker build -t bhagyshree25/hello-world-1.0 ./my-app'
+                    sh 'docker build -t geet479/javaworld-1.0 ./my-app'
                 }
             }
         }
         
-        stage('push docker image'){
+        stage('push image'){
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'dockerhub_cred', variable: 'dockerhub_creds')]) {
-                        sh 'docker login -u bhagyshree25 -p ${dockerhub_creds}'
-                        sh 'docker push bhagyshree25/hello-world-1.0'
+                    withCredentials([string(credentialsId: 'Dockerlogin', variable: '')]) {
+                        sh 'docker login -u geet479 -p ${dockerhub_creds}'
+                        sh 'docker push geet479/javaworld-1.0'
                     }
                 }
             }
         }
     }
 }
+
+
